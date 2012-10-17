@@ -1,4 +1,8 @@
-﻿using System.Net.Sockets;
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Net.Sockets;
+using System.Text;
 using System.Threading;
 using System.Net;
 using Common;
@@ -43,36 +47,32 @@ namespace Server
 
         private ClientData WaitRequest(NetworkStream stream)
         {
-            //byte[] message = new byte[4096];
+            List<byte> bytes = new List<byte>(); 
 
-            //while (true)
-            //{
-            //    int bytesRead = 0;
+            if (stream.CanRead)
+            {
+                byte[] myReadBuffer = new byte[1024];
+                StringBuilder myCompleteMessage = new StringBuilder();
 
-            //    try
-            //    {
-            //        bytesRead = stream.Read(message, 0, 4096);
-            //    }
-            //    catch (Exception ex)
-            //    {
-            //        Console.WriteLine(ex.ToString());
-            //    }
+                // Incoming message may be larger than the buffer size. 
+                do
+                {
+                    int numberOfBytesRead = stream.Read(myReadBuffer, 0, myReadBuffer.Length);
+                    bytes.AddRange(myReadBuffer.Take(numberOfBytesRead));
+                    myCompleteMessage.AppendFormat("{0}", Encoding.ASCII.GetString(myReadBuffer, 0, numberOfBytesRead));
+                } while (stream.DataAvailable);
 
-            //    if (bytesRead == 0)
-            //    {
-            //        break;
-            //    }
+                // Print out the received message to the console.
+                Console.WriteLine("You received the following message : " + myCompleteMessage);
+            }
+            else
+            {
+                Console.WriteLine("Sorry.  You cannot read from this NetworkStream.");
+            }
 
-            //    byte[] data = new byte[bytesRead];
-            //    for (int i = 0; i < bytesRead; i++)
-            //    {
-            //        data[i] = message[i];
-            //    }
 
-            //    return data;
-            //}
-
-            return Helper.SDODeserializeClientData(stream);
+            return new ClientData();
+            //return Helper.SDODeserializeClientData(stream);
         }
 
         public void SendResponse(ClientData clientData, NetworkStream stream)

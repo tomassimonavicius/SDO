@@ -7,6 +7,9 @@ namespace Common
 {
     public class Helper
     {
+        private static readonly BitArray MARK = new BitArray(new [] { true, true, true, true, true, false, false, false });
+        private static readonly BitArray MARKLENGTH = new BitArray(new[] { false, false, false, false, false, true, true, true });
+
         public static byte[] SDOSerializeClientData(ClientData data)
         {
             byte[] id = SDOSerializeString(data.Id);
@@ -46,6 +49,25 @@ namespace Common
         public static ClientData SDODeserializeClientData(NetworkStream stream)
         {
             ClientData data = new ClientData();
+
+            while (true)
+            {
+                int result = stream.ReadByte();
+
+                if (result == -1)
+                    break;
+
+                byte b = (byte) result;
+
+                BitArray firstByte = new BitArray(new []{b});
+                if (firstByte.And(MARK) == MARK) //MARK byte
+                {
+                    byte[] markLength = new byte[1];
+                    firstByte.And(MARKLENGTH).CopyTo(markLength, 0);
+
+                    int length = BitConverter.ToInt32(markLength, 0);
+                }
+            }
 
             return data;
         }
