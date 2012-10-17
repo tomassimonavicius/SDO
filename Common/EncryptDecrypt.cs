@@ -1,45 +1,46 @@
 ﻿using System;
 using System.IO;
-using System.Security.Cryptography; 
+using System.Security.Cryptography;
+using System.Text;
 
-namespace Server
+namespace Common
 {
     public class EncryptDecrypt
     {
-        public static byte[] Encrypt(byte[] clearData, string algorithmName, byte[] Key, byte[] IV)
+        public static string Encrypt(string clearData, string algorithmName, string Key, string IV)
         {
             MemoryStream ms = new MemoryStream();
 
             SymmetricAlgorithm alg = GetAlgorithm(algorithmName);
 
-            alg.Key = Key;
-            alg.IV = IV;
+            alg.Key = Encoding.UTF8.GetBytes(Key);
+            alg.IV = Encoding.UTF8.GetBytes(IV);
 
             CryptoStream cs = new CryptoStream(ms, alg.CreateEncryptor(), CryptoStreamMode.Write);
-            cs.Write(clearData, 0, clearData.Length);
+            cs.Write(Encoding.UTF8.GetBytes(clearData), 0, clearData.Length);
             cs.Close();
 
-            return ms.ToArray(); ;
+            return Encoding.UTF8.GetString(ms.ToArray());
         }
 
-        public static byte[] Decrypt(byte[] cipherData, string algorithmName, byte[] Key, byte[] IV)
+        public static string Decrypt(string cipherData, string algorithmName, string Key, string IV)
         {
             MemoryStream ms = new MemoryStream();
 
             SymmetricAlgorithm alg = GetAlgorithm(algorithmName);
-            alg.Key = Key;
-            alg.IV = IV;
+            alg.Key = Encoding.UTF8.GetBytes(Key);
+            alg.IV = Encoding.UTF8.GetBytes(IV);
 
 
             CryptoStream cs = new CryptoStream(ms, alg.CreateDecryptor(), CryptoStreamMode.Write);
-            cs.Write(cipherData, 0, cipherData.Length);
+            cs.Write(Encoding.UTF8.GetBytes(cipherData), 0, cipherData.Length);
             cs.Close();
 
-            return ms.ToArray();
+            return Encoding.UTF8.GetString(ms.ToArray());
         }
 
 
-        public static SymmetricAlgorithm GetAlgorithm(string name)
+        private static SymmetricAlgorithm GetAlgorithm(string name)
         {
             switch (name)
             {
