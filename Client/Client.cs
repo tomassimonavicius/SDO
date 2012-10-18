@@ -1,4 +1,7 @@
-﻿using System.Net.Sockets;
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Net.Sockets;
 using System.Net;
 using System.Xml.Serialization;
 using System.IO;
@@ -27,32 +30,26 @@ namespace Client
             clientStream.Flush();
         }
 
-        private void WaitResponse(NetworkStream clientStream)
+        private void WaitResponse(NetworkStream stream)
         {
-            //byte[] message = new byte[4096];
+            List<byte> bytes = new List<byte>();
 
-            //while (true)
-            //{
-            //    int bytesRead = 0;
+            if (stream.CanRead)
+            {
+                byte[] myReadBuffer = new byte[1024];
 
-            //    try
-            //    {
-            //        //blocks until a client sends a message
-            //        bytesRead = clientStream.Read(message, 0, 4096);
-            //    }
-            //    catch (Exception ex)
-            //    {
-            //        Console.WriteLine(ex.ToString());
-            //    }
+                do
+                {
+                    int numberOfBytesRead = stream.Read(myReadBuffer, 0, myReadBuffer.Length);
+                    bytes.AddRange(myReadBuffer.Take(numberOfBytesRead));
+                } while (stream.DataAvailable);
+            }
+            else
+            {
+                Console.WriteLine("Sorry. You cannot read from this NetworkStream.");
+            }
 
-            //    if (bytesRead == 0)
-            //    {
-            //        //the client has disconnected from the server
-            //        break;
-            //    }
-            //}
-
-            WriteServerData(Helper.SDODeserializeServerData(clientStream));
+            WriteServerData(Helper.SDODeserializeServerData(bytes.ToArray()));
         }
 
         private ClientData ReadClientData()

@@ -2,8 +2,11 @@
 <clientdata>
   <id>2</id>
   <text>Lorem ipsum dolor sit amet, consectetur adipiscing elit.</text>
-  <key>7ax7gTeRTRkM3inzkgy4lkKcs4i9AuJ8</key>
-  <iv>5c17eacc047fd32fdecc2e0f226e4e86</iv>
-  <algorithm>TripleDES</algorithm>
+  <key>7ax7gTeRTRkM3inzkgy4lkKc</key>
+  <!--!TripleDES initialization vector
+  <iv>5c17eacc</iv>
+  -->
+  <iv>5c17eacc047fd32f</iv>
+  <algorithm>Rijndael</algorithm>
   <action>Encrypt</action>
 </clientdata>

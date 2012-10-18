@@ -2,7 +2,6 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Net.Sockets;
-using System.Text;
 using System.Threading;
 using System.Net;
 using Common;
@@ -11,23 +10,23 @@ namespace Server
 {
     class Server
     {
-        private TcpListener tcpListener;
-        private Thread listenerThread;
+        private TcpListener _tcpListener;
+        private Thread _listenerThread;
 
         public void Listen()
         {
-            this.tcpListener = new TcpListener(IPAddress.Any, 3000);
-            this.listenerThread = new Thread(WaitForClients);
-            this.listenerThread.Start();
+            _tcpListener = new TcpListener(IPAddress.Any, 3000);
+            _listenerThread = new Thread(WaitForClients);
+            _listenerThread.Start();
         }
 
         private void WaitForClients()
         {
-            this.tcpListener.Start();
+            _tcpListener.Start();
 
             while (true)
             {
-                TcpClient client = this.tcpListener.AcceptTcpClient();
+                TcpClient client = _tcpListener.AcceptTcpClient();
 
                 Thread clientThread = new Thread(HandleClient);
                 clientThread.Start(client);
@@ -52,36 +51,38 @@ namespace Server
             if (stream.CanRead)
             {
                 byte[] myReadBuffer = new byte[1024];
-                StringBuilder myCompleteMessage = new StringBuilder();
 
-                // Incoming message may be larger than the buffer size. 
                 do
                 {
                     int numberOfBytesRead = stream.Read(myReadBuffer, 0, myReadBuffer.Length);
                     bytes.AddRange(myReadBuffer.Take(numberOfBytesRead));
-                    myCompleteMessage.AppendFormat("{0}", Encoding.ASCII.GetString(myReadBuffer, 0, numberOfBytesRead));
                 } while (stream.DataAvailable);
-
-                // Print out the received message to the console.
-                Console.WriteLine("You received the following message : " + myCompleteMessage);
             }
             else
             {
-                Console.WriteLine("Sorry.  You cannot read from this NetworkStream.");
+                Console.WriteLine("Sorry. You cannot read from this NetworkStream.");
             }
 
-
-            return new ClientData();
-            //return Helper.SDODeserializeClientData(stream);
+            return Helper.SDODeserializeClientData(bytes.ToArray());
         }
 
         public void SendResponse(ClientData clientData, NetworkStream stream)
         {
             ServerData serverData = new ServerData
-                                        {
-                                            Id = clientData.Id,
-                                            Text = Helper.ProcessClientData(clientData)
-                                        };
+            {
+                Id = clientData.Id
+            };
+
+            try
+            {
+                serverData.Text = Helper.ProcessClientData(clientData);
+                serverData.Status = "Success";
+            }
+            catch (Exception ex)
+            {
+                serverData.Text = ex.Message;
+                serverData.Status = "Error";
+            }
 
             byte[] buffer = Helper.SDOSerializeServerData(serverData);
 
