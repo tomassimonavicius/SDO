@@ -1,12 +1,6 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace Common
+﻿namespace Common
 {
-    [System.Xml.Serialization.XmlRoot("data")]
+    [System.Xml.Serialization.XmlRoot("clientdata")]
     public class ClientData
     {
         [System.Xml.Serialization.XmlElement("id")]

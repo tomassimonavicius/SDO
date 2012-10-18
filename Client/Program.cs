@@ -1,16 +1,13 @@
 ﻿using System;
-using System.Text;
-using System.Net.Sockets;
-using System.Threading;
-using System.Net;
 
 namespace Client
 {
     class Program
     {
-        static void Main(string[] args)
+        static void Main()
         {
-            new Client();
+            Client client = new Client();
+            client.Connect();
 
             Console.ReadKey();
         }
