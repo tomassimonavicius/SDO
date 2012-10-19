@@ -6,9 +6,6 @@ namespace Common
 {
     public class Helper
     {
-        private static readonly BitArray MARK = new BitArray(new[] { false, false, false, true, true, true, true, true });
-        private static readonly BitArray MARKLENGTH = new BitArray(new[] { true, true, true, false, false, false, false, false });
-
         public static byte[] SDOSerializeClientData(ClientData data)
         {
             byte[] id = SDOSerializeString(data.Id);
@@ -314,9 +311,9 @@ namespace Common
             switch (clientData.Action)
             {
                 case "Encrypt":
-                    return ConvertStringToHex(EncryptDecrypt.Encrypt(clientData.Text, clientData.Algorithm, clientData.Key, clientData.IV));
+                    return EncryptDecrypt.Encrypt(clientData.Text, clientData.Algorithm, clientData.Key, clientData.IV);
                 case "Decrypt":
-                    return EncryptDecrypt.Decrypt(ConvertHexToString(clientData.Text), clientData.Algorithm, clientData.Key, clientData.IV);
+                    return EncryptDecrypt.Decrypt(clientData.Text, clientData.Algorithm, clientData.Key, clientData.IV);
                 default:
                     throw new Exception("Not supported client action.");
             }
@@ -334,29 +331,6 @@ namespace Common
                 return BitConverter.GetBytes(value);
 
             return BitConverter.GetBytes(value);
-        }
-
-        public static string ConvertStringToHex(string text)
-        {
-            string hex = "";
-            for (int i = 0; i < text.Length; i++)
-            {
-                char c = text[i];
-                int tmp = c;
-                hex += String.Format("{0:x2}", Convert.ToUInt32(tmp));
-            }
-            return hex;
-        }
-
-        public static string ConvertHexToString(string hex)
-        {
-            string text = "";
-            while (hex.Length > 0)
-            {
-                text += Convert.ToChar(Convert.ToUInt32(hex.Substring(0, 2), 16));
-                hex = hex.Substring(2, hex.Length - 2);
-            }
-            return text;
         }
     }
 }
