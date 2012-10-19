@@ -138,22 +138,31 @@ namespace Common
         public static byte[] SDOSerializeServerData(ServerData data)
         {
             byte[] id = SDOSerializeString(data.Id);
+            byte[] status = SDOSerializeString(data.Status);
             byte[] text = SDOSerializeString(data.Text);
 
-            BitArray bitArray = new BitArray(new[] { (byte)2 });
+            BitArray bitArray = new BitArray(new[] { (byte)3 });
             bitArray.Set(3, true);
             bitArray.Set(4, true);
             bitArray.Set(5, true);
             bitArray.Set(6, true);
             bitArray.Set(7, true);
 
-            byte[] bytes = new byte[id.Length + text.Length + 1];
+            byte[] bytes = new byte[id.Length + status.Length + text.Length + 4];
 
             bitArray.CopyTo(bytes, 0);
 
             int index = 1;
+            bytes[index] = 1;
+            index += 1;
             id.CopyTo(bytes, index);
             index += id.Length;
+            bytes[index] = 2;
+            index += 1;
+            status.CopyTo(bytes, index);
+            index += status.Length;
+            bytes[index] = 3;
+            index += 1;
             text.CopyTo(bytes, index);
 
             return bytes;
@@ -162,6 +171,44 @@ namespace Common
         public static ServerData SDODeserializeServerData(byte[] data)
         {
             ServerData serverData = new ServerData();
+
+            int dataLength = data.Length;
+            int position = 0;
+            int markCount = IsMarkByte(data[position]);
+
+            while (markCount < 0 || dataLength < position || data[position] == 0)
+            {
+                position++;
+                markCount = IsMarkByte(data[position]);
+            }
+
+            position++;
+
+            for (int i = 0; i < markCount; i++)
+            {
+                while (data[position] != i + 1 || dataLength < position || data[position] == 0)
+                {
+                    position++;
+                }
+
+                if (dataLength < position || data[position] == 0)
+                    return serverData;
+
+                position++;
+
+                switch (i + 1)
+                {
+                    case 1:
+                        serverData.Id = SDODeserializeString(data, ref position);
+                        break;
+                    case 2:
+                        serverData.Status = SDODeserializeString(data, ref position);
+                        break;
+                    case 3:
+                        serverData.Text = SDODeserializeString(data, ref position);
+                        break;
+                }
+            }
 
             return serverData;
         }
@@ -267,9 +314,9 @@ namespace Common
             switch (clientData.Action)
             {
                 case "Encrypt":
-                    return EncryptDecrypt.Encrypt(clientData.Text, clientData.Algorithm, clientData.Key, clientData.IV);
+                    return ConvertStringToHex(EncryptDecrypt.Encrypt(clientData.Text, clientData.Algorithm, clientData.Key, clientData.IV));
                 case "Decrypt":
-                    return EncryptDecrypt.Decrypt(clientData.Text, clientData.Algorithm, clientData.Key, clientData.IV);
+                    return EncryptDecrypt.Decrypt(ConvertHexToString(clientData.Text), clientData.Algorithm, clientData.Key, clientData.IV);
                 default:
                     throw new Exception("Not supported client action.");
             }
@@ -287,6 +334,29 @@ namespace Common
                 return BitConverter.GetBytes(value);
 
             return BitConverter.GetBytes(value);
+        }
+
+        public static string ConvertStringToHex(string text)
+        {
+            string hex = "";
+            for (int i = 0; i < text.Length; i++)
+            {
+                char c = text[i];
+                int tmp = c;
+                hex += String.Format("{0:x2}", Convert.ToUInt32(tmp));
+            }
+            return hex;
+        }
+
+        public static string ConvertHexToString(string hex)
+        {
+            string text = "";
+            while (hex.Length > 0)
+            {
+                text += Convert.ToChar(Convert.ToUInt32(hex.Substring(0, 2), 16));
+                hex = hex.Substring(2, hex.Length - 2);
+            }
+            return text;
         }
     }
 }

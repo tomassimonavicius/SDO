@@ -1,12 +1,15 @@
 ﻿<?xml version="1.0"?>
 <clientdata>
   <id>2</id>
-  <text>Lorem ipsum dolor sit amet, consectetur adipiscing elit.</text>
+  <text>fffd04762914fffd1d441951fffd0126fffdfffdfffd4d67fffdfffd5631781efffd0872484d4fffdfffd431c6c05fffd18fffdfffd3afffd56051e36d622d60fffd1504fffd07512827fffd31fffd6cfffd2f</text>
   <key>7ax7gTeRTRkM3inzkgy4lkKc</key>
-  <!--!TripleDES initialization vector
+  <!--! Initialization vector
+  TripleDES
   <iv>5c17eacc</iv>
+  Rijndael
+  <iv>5c17eacc047fd32f</iv>
   -->
   <iv>5c17eacc047fd32f</iv>
   <algorithm>Rijndael</algorithm>
-  <action>Encrypt</action>
+  <action>Decrypt</action>
 </clientdata>
