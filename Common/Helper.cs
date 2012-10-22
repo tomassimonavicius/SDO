@@ -1,60 +1,41 @@
 ﻿using System;
-using System.Collections;
 using System.Text;
 
 namespace Common
 {
+    //TODO: take little endian into consideration
     public class Helper
     {
-        public static byte[] SDOSerializeClientData(ClientData data)
+        public static byte[] SdoSerializeClientData(ClientData clientData)
         {
-            byte[] id = SDOSerializeString(data.Id);
-            byte[] text = SDOSerializeString(data.Text);
-            byte[] key = SDOSerializeString(data.Key);
-            byte[] iv = SDOSerializeString(data.IV);
-            byte[] algorithm = SDOSerializeString(data.Algorithm);
-            byte[] action = SDOSerializeString(data.Action);
+            byte[][] data = new byte[6][];
 
-            BitArray bitArray = new BitArray(new[] { (byte)6 });
-            bitArray.Set(3, true);
-            bitArray.Set(4, true);
-            bitArray.Set(5, true);
-            bitArray.Set(6, true);
-            bitArray.Set(7, true);
+            data[0] = SdoSerializeString(clientData.Id);
+            data[1] = SdoSerializeString(clientData.Text);
+            data[2] = SdoSerializeString(clientData.Key);
+            data[3] = SdoSerializeString(clientData.Iv);
+            data[4] = SdoSerializeString(clientData.Algorithm);
+            data[5] = SdoSerializeString(clientData.Action);
 
-            byte[] bytes = new byte[id.Length + text.Length + key.Length + iv.Length + algorithm.Length + action.Length + 7];
-
-            bitArray.CopyTo(bytes, 0);
+            byte[] bytes = new byte[data[0].Length + data[1].Length + data[2].Length + data[3].Length + data[4].Length + data[5].Length + 7];
+            bytes[0] = 0xFE;
 
             int index = 1;
-            bytes[index] = 1;
-            index += 1;
-            id.CopyTo(bytes, index);
-            index += id.Length;
-            bytes[index] = 2;
-            index += 1;
-            text.CopyTo(bytes, index);
-            index += text.Length;
-            bytes[index] = 3;
-            index += 1;
-            key.CopyTo(bytes, index);
-            index += key.Length;
-            bytes[index] = 4;
-            index += 1;
-            iv.CopyTo(bytes, index);
-            index += iv.Length;
-            bytes[index] = 5;
-            index += 1;
-            algorithm.CopyTo(bytes, index);
-            index += algorithm.Length;
-            bytes[index] = 6;
-            index += 1;
-            action.CopyTo(bytes, index);
+            for (int i = 1; i < 7; i++)
+            {
+                byte[] d = data[i - 1];
+
+                bytes[index] = (byte)i;
+                index++;
+                d.CopyTo(bytes, index);
+                index += d.Length;
+            }
 
             return bytes;
         }
 
-        public static ClientData SDODeserializeClientData(byte[] data)
+        //TODO: optimize code performance
+        public static ClientData SdoDeserializeClientData(byte[] data)
         {
             ClientData clientData = new ClientData();
 
@@ -85,22 +66,22 @@ namespace Common
                 switch (i + 1)
                 {
                     case 1:
-                        clientData.Id = SDODeserializeString(data, ref position);
+                        clientData.Id = SdoDeserializeString(data, ref position);
                         break;
                     case 2:
-                        clientData.Text = SDODeserializeString(data, ref position);
+                        clientData.Text = SdoDeserializeString(data, ref position);
                         break;
                     case 3:
-                        clientData.Key = SDODeserializeString(data, ref position);
+                        clientData.Key = SdoDeserializeString(data, ref position);
                         break;
                     case 4:
-                        clientData.IV = SDODeserializeString(data, ref position);
+                        clientData.Iv = SdoDeserializeString(data, ref position);
                         break;
                     case 5:
-                        clientData.Algorithm = SDODeserializeString(data, ref position);
+                        clientData.Algorithm = SdoDeserializeString(data, ref position);
                         break;
                     case 6:
-                        clientData.Action = SDODeserializeString(data, ref position);
+                        clientData.Action = SdoDeserializeString(data, ref position);
                         break;
                 }
             }
@@ -110,62 +91,41 @@ namespace Common
 
         private static int IsMarkByte(byte b)
         {
-            BitArray bitArray = new BitArray(new[] { b });
-            bool isMarkByte = true;
-
-            for (int i = 7; i > 3; i--)
+            if ((b & 0xF8) == 0xF8)
             {
-                if (!bitArray.Get(i))
-                {
-                    isMarkByte = false;
-                    break;
-                }
-            }
-
-            if (isMarkByte)
-            {
-                byte[] markLength = new byte[1];
-                bitArray.And(new BitArray(new[] { true, true, true, false, false, false, false, false })).CopyTo(markLength, 0);
-                return markLength[0];
+                return b & 0x07;
             }
 
             return -1;
         }
 
-        public static byte[] SDOSerializeServerData(ServerData data)
+        public static byte[] SdoSerializeServerData(ServerData serverData)
         {
-            byte[] id = SDOSerializeString(data.Id);
-            byte[] status = SDOSerializeString(data.Status);
-            byte[] text = SDOSerializeString(data.Text);
+            byte[][] data = new byte[3][];
 
-            BitArray bitArray = new BitArray(new[] { (byte)3 });
-            bitArray.Set(3, true);
-            bitArray.Set(4, true);
-            bitArray.Set(5, true);
-            bitArray.Set(6, true);
-            bitArray.Set(7, true);
+            data[0] = SdoSerializeString(serverData.Id);
+            data[1] = SdoSerializeString(serverData.Status);
+            data[2] = SdoSerializeString(serverData.Text);
 
-            byte[] bytes = new byte[id.Length + status.Length + text.Length + 4];
-
-            bitArray.CopyTo(bytes, 0);
+            byte[] bytes = new byte[data[0].Length + data[1].Length + data[2].Length + 4];
+            bytes[0] = 0xFB;
 
             int index = 1;
-            bytes[index] = 1;
-            index += 1;
-            id.CopyTo(bytes, index);
-            index += id.Length;
-            bytes[index] = 2;
-            index += 1;
-            status.CopyTo(bytes, index);
-            index += status.Length;
-            bytes[index] = 3;
-            index += 1;
-            text.CopyTo(bytes, index);
+            for (int i = 1; i < 4; i++)
+            {
+                byte[] d = data[i - 1];
+
+                bytes[index] = (byte)i;
+                index++;
+                d.CopyTo(bytes, index);
+                index += d.Length;
+            }
 
             return bytes;
         }
 
-        public static ServerData SDODeserializeServerData(byte[] data)
+        //TODO: optimize code performance
+        public static ServerData SdoDeserializeServerData(byte[] data)
         {
             ServerData serverData = new ServerData();
 
@@ -196,13 +156,13 @@ namespace Common
                 switch (i + 1)
                 {
                     case 1:
-                        serverData.Id = SDODeserializeString(data, ref position);
+                        serverData.Id = SdoDeserializeString(data, ref position);
                         break;
                     case 2:
-                        serverData.Status = SDODeserializeString(data, ref position);
+                        serverData.Status = SdoDeserializeString(data, ref position);
                         break;
                     case 3:
-                        serverData.Text = SDODeserializeString(data, ref position);
+                        serverData.Text = SdoDeserializeString(data, ref position);
                         break;
                 }
             }
@@ -210,7 +170,7 @@ namespace Common
             return serverData;
         }
 
-        private static byte[] SDOSerializeString(string text)
+        private static byte[] SdoSerializeString(string text)
         {
             byte[] textBytes = Encoding.UTF8.GetBytes(text);
             int textBytesLength = textBytes.Length;
@@ -219,25 +179,17 @@ namespace Common
 
             byte[] result;
 
-            BitArray bitArray;
-
             if (textBytesLength < 16)
             {
                 result = new byte[textBytesLength + 1];
-                bitArray = new BitArray(new[] { (byte)textBytesLength });
-                bitArray.Set(4, false);
+                result[0] = (byte)(((byte)textBytesLength) | 0x60);
             }
             else
             {
                 result = new byte[textBytesLengthBytesLength + textBytesLength + 1];
-                bitArray = new BitArray(new[] { (byte)textBytesLengthBytesLength });
-                bitArray.Set(4, true);
+                result[0] = (byte)(((byte)textBytesLengthBytesLength) | 0x70);
             }
-            bitArray.Set(5, true);
-            bitArray.Set(6, true);
-            bitArray.Set(7, false);
 
-            bitArray.CopyTo(result, 0);
             int resultIndex = 1;
 
             if (textBytesLength > 15)
@@ -258,52 +210,50 @@ namespace Common
             return result;
         }
 
-        private static string SDODeserializeString(byte[] data, ref int position)
+        private static string SdoDeserializeString(byte[] data, ref int position)
         {
-            BitArray type = new BitArray(new []{ data[position] });
+            byte type = data[position];
 
-            if(!type.Get(7) && type.Get(6) && type.Get(5))
+            if((type & 0x60) == 0x60)
             {
-                bool lengthNextInBytes = type.Get(4);
-                byte[] length = new byte[1];
-                type.And(new BitArray(new[] { true, true, true, true, false, false, false, false })).CopyTo(length, 0);
-                int l = length[0];
+                bool lengthInBytes = (type & 0x10) == 0x10;
+                int length = type & 0x0F;
 
                 position++;
+                byte[] text;
 
-                if(lengthNextInBytes)
+                if (lengthInBytes)
                 {
-                    byte[] tl = new byte[8];
-                    for (int i = 0; i < l; i++)
+                    byte[] lengthBytes = new byte[8];
+                    for (int i = 0; i < length; i++)
                     {
-                        tl[i] = data[position];
+                        lengthBytes[i] = data[position];
                         position++;
                     }
 
-                    long tlCount = BitConverter.ToInt64(tl, 0);
+                    long lengthBytesLength = BitConverter.ToInt64(lengthBytes, 0);
 
-                    byte[] t = new byte[tlCount];
-                    for (int i = 0; i < tlCount; i++)
+                    text = new byte[lengthBytesLength];
+                    for (int i = 0; i < lengthBytesLength; i++)
                     {
-                        t[i] = data[position];
+                        text[i] = data[position];
                         position++;
                     }
-
-                    return Encoding.UTF8.GetString(t, 0, t.Length);
                 }
                 else
                 {
-                    byte[] t = new byte[l];
-                    for (int i = 0; i < l; i++)
+                    text = new byte[length];
+                    for (int i = 0; i < length; i++)
                     {
-                        t[i] = data[position];
+                        text[i] = data[position];
                         position++;
                     }
-
-                    return Encoding.UTF8.GetString(t, 0, t.Length);
                 }
+
+                return Encoding.UTF8.GetString(text, 0, text.Length);
             }
-            throw new Exception("Expected string, nut received unknown type.");
+
+            throw new Exception("Expected string, but received unknown type.");
         }
 
         public static string ProcessClientData(ClientData clientData)
@@ -311,9 +261,9 @@ namespace Common
             switch (clientData.Action)
             {
                 case "Encrypt":
-                    return EncryptDecrypt.Encrypt(clientData.Text, clientData.Algorithm, clientData.Key, clientData.IV);
+                    return EncryptDecrypt.Encrypt(clientData.Text, clientData.Algorithm, clientData.Key, clientData.Iv);
                 case "Decrypt":
-                    return EncryptDecrypt.Decrypt(clientData.Text, clientData.Algorithm, clientData.Key, clientData.IV);
+                    return EncryptDecrypt.Decrypt(clientData.Text, clientData.Algorithm, clientData.Key, clientData.Iv);
                 default:
                     throw new Exception("Not supported client action.");
             }
@@ -321,16 +271,33 @@ namespace Common
 
         private static byte[] IntBytes(int value)
         {
-            if (sbyte.MinValue <= value && value <= byte.MaxValue)
-                return new [] {(byte)value};
-            if (short.MinValue <= value && value <= short.MaxValue)
-                return BitConverter.GetBytes((short)value);
-            if (ushort.MinValue <= value && value <= ushort.MaxValue)
-                return BitConverter.GetBytes((ushort)value);
-            if (int.MinValue <= value && value <= int.MaxValue)
-                return BitConverter.GetBytes(value);
+            byte[] bytes;
 
-            return BitConverter.GetBytes(value);
+            if (sbyte.MinValue <= value && value <= byte.MaxValue)
+            {
+                return new[] {(byte) value};
+            }
+            if (short.MinValue <= value && value <= short.MaxValue)
+            {
+                bytes = new byte[2];
+                bytes[1] = (byte) (((short) value) >> 8);
+                bytes[0] = (byte) ((short) value);
+                return bytes;
+            }
+            if (ushort.MinValue <= value && value <= ushort.MaxValue)
+            {
+                bytes = new byte[2];
+                bytes[1] = (byte) (((ushort) value) >> 8);
+                bytes[0] = (byte) ((ushort) value);
+                return bytes;
+            }
+
+            bytes = new byte[4];
+            bytes[3] = (byte) (value >> 24);
+            bytes[2] = (byte) (value >> 16);
+            bytes[1] = (byte) (value >> 8);
+            bytes[0] = (byte) value;
+            return bytes;
         }
     }
 }

@@ -7,7 +7,7 @@ namespace Common
 {
     public class EncryptDecrypt
     {
-        public static string Encrypt(string clearData, string algorithmName, string Key, string IV)
+        public static string Encrypt(string clearData, string algorithmName, string key, string iv)
         {
             byte[] value = Encoding.UTF8.GetBytes(clearData);
 
@@ -15,8 +15,8 @@ namespace Common
 
             SymmetricAlgorithm alg = GetAlgorithm(algorithmName);
 
-            alg.Key = Encoding.UTF8.GetBytes(Key);
-            alg.IV = Encoding.UTF8.GetBytes(IV);
+            alg.Key = Encoding.UTF8.GetBytes(key);
+            alg.IV = Encoding.UTF8.GetBytes(iv);
 
             CryptoStream cs = new CryptoStream(ms, alg.CreateEncryptor(), CryptoStreamMode.Write);
             cs.Write(value, 0, value.Length);
@@ -25,15 +25,15 @@ namespace Common
             return ToHex(ms.ToArray());
         }
 
-        public static string Decrypt(string cipherData, string algorithmName, string Key, string IV)
+        public static string Decrypt(string cipherData, string algorithmName, string key, string iv)
         {
             byte[] data = HexToBytes(cipherData);
 
             MemoryStream ms = new MemoryStream();
 
             SymmetricAlgorithm alg = GetAlgorithm(algorithmName);
-            alg.Key = Encoding.UTF8.GetBytes(Key);
-            alg.IV = Encoding.UTF8.GetBytes(IV);
+            alg.Key = Encoding.UTF8.GetBytes(key);
+            alg.IV = Encoding.UTF8.GetBytes(iv);
 
 
             CryptoStream cs = new CryptoStream(ms, alg.CreateDecryptor(), CryptoStreamMode.Write);
@@ -47,11 +47,9 @@ namespace Common
         {
             char[] c = new char[bytes.Length * 2];
 
-            byte b;
-
             for (int bx = 0, cx = 0; bx < bytes.Length; ++bx, ++cx)
             {
-                b = ((byte)(bytes[bx] >> 4));
+                byte b = ((byte)(bytes[bx] >> 4));
                 c[cx] = (char)(b > 9 ? b + 0x37 + 0x20 : b + 0x30);
 
                 b = ((byte)(bytes[bx] & 0x0F));
@@ -67,14 +65,11 @@ namespace Common
                 return new byte[0];
 
             byte[] buffer = new byte[str.Length / 2];
-            char c;
             for (int bx = 0, sx = 0; bx < buffer.Length; ++bx, ++sx)
             {
-                // Convert first half of byte
-                c = str[sx];
+                char c = str[sx];
                 buffer[bx] = (byte)((c > '9' ? (c > 'Z' ? (c - 'a' + 10) : (c - 'A' + 10)) : (c - '0')) << 4);
 
-                // Convert second half of byte
                 c = str[++sx];
                 buffer[bx] |= (byte)(c > '9' ? (c > 'Z' ? (c - 'a' + 10) : (c - 'A' + 10)) : (c - '0'));
             }

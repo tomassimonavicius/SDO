@@ -1,6 +1,10 @@
-﻿<?xml version="1.0"?>
+﻿<?xml version="1.0" encoding="utf-8"?>
 <clientdata>
   <id>2</id>
+  <!--
+  <text>Lorem ipsum dolor sit amet, consectetur adipiscing elit.</text>
+  <text>a104762914811d441951cd0126b5fcb94d6793f45631781e8a087248d39484a8431c6c05c318f7943afa56051ecdad622d60dc1504a7075128278331b36ca32f</text>
+  -->
   <text>a104762914811d441951cd0126b5fcb94d6793f45631781e8a087248d39484a8431c6c05c318f7943afa56051ecdad622d60dc1504a7075128278331b36ca32f</text>
   <key>7ax7gTeRTRkM3inzkgy4lkKc</key>
   <!--! Initialization vector

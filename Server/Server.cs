@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Net.Sockets;
 using System.Threading;
 using System.Net;
@@ -55,15 +54,17 @@ namespace Server
                 do
                 {
                     int numberOfBytesRead = stream.Read(myReadBuffer, 0, myReadBuffer.Length);
-                    bytes.AddRange(myReadBuffer.Take(numberOfBytesRead));
+                    byte[] tmp = new byte[numberOfBytesRead];
+                    Array.Copy(myReadBuffer, 0, tmp, 0, numberOfBytesRead);
+                    bytes.AddRange(tmp);
                 } while (stream.DataAvailable);
             }
             else
             {
-                Console.WriteLine("Sorry. You cannot read from this NetworkStream.");
+                Console.WriteLine("Sorry. You can't read from this NetworkStream.");
             }
 
-            return Helper.SDODeserializeClientData(bytes.ToArray());
+            return Helper.SdoDeserializeClientData(bytes.ToArray());
         }
 
         public void SendResponse(ClientData clientData, NetworkStream stream)
@@ -84,7 +85,7 @@ namespace Server
                 serverData.Status = "Error";
             }
 
-            byte[] buffer = Helper.SDOSerializeServerData(serverData);
+            byte[] buffer = Helper.SdoSerializeServerData(serverData);
 
             stream.Write(buffer, 0, buffer.Length);
             stream.Flush();
