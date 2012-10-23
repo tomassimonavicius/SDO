@@ -34,7 +34,6 @@ namespace Common
             return bytes;
         }
 
-        //TODO: optimize code performance
         public static ClientData SdoDeserializeClientData(byte[] data)
         {
             ClientData clientData = new ClientData();
@@ -124,7 +123,6 @@ namespace Common
             return bytes;
         }
 
-        //TODO: optimize code performance
         public static ServerData SdoDeserializeServerData(byte[] data)
         {
             ServerData serverData = new ServerData();

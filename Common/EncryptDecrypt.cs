@@ -45,9 +45,10 @@ namespace Common
 
         public static string ToHex(byte[] bytes)
         {
-            char[] c = new char[bytes.Length * 2];
+            int bytesLength = bytes.Length;
+            char[] c = new char[bytesLength * 2];
 
-            for (int bx = 0, cx = 0; bx < bytes.Length; ++bx, ++cx)
+            for (int bx = 0, cx = 0; bx < bytesLength; ++bx, ++cx)
             {
                 byte b = ((byte)(bytes[bx] >> 4));
                 c[cx] = (char)(b > 9 ? b + 0x37 + 0x20 : b + 0x30);
@@ -61,11 +62,14 @@ namespace Common
 
         public static byte[] HexToBytes(string str)
         {
-            if (str.Length == 0 || str.Length % 2 != 0)
+            int strLength = str.Length;
+
+            if (strLength == 0 || strLength % 2 != 0)
                 return new byte[0];
 
-            byte[] buffer = new byte[str.Length / 2];
-            for (int bx = 0, sx = 0; bx < buffer.Length; ++bx, ++sx)
+            byte[] buffer = new byte[strLength / 2];
+            int bufferLength = buffer.Length;
+            for (int bx = 0, sx = 0; bx < bufferLength; ++bx, ++sx)
             {
                 char c = str[sx];
                 buffer[bx] = (byte)((c > '9' ? (c > 'Z' ? (c - 'a' + 10) : (c - 'A' + 10)) : (c - '0')) << 4);
